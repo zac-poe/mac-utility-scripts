@@ -20,9 +20,10 @@ while getopts "h" opt; do
         *) usage;;
     esac
 done
+OPTIND=1
 
 # simple support for things like 'this.sh help', or to prevent unintentional misuse with flags
-if [[ ${#1} -gt 0 && $(echo "$1" | grep -c '^-') -le 0 ]]; then
+if [[ ${#1} -gt 0 && $(printf -- "$1" | grep -c '^-') -le 0 ]]; then
     usage
 fi
 
