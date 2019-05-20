@@ -33,13 +33,16 @@ memory_marker='PhysMem'
 swap_marker='Swap'
 
 get_bytes() {
-    stat="$(echo "$output" | grep "^$1:" | sed "s/.* \([0-9MKG]*\) $2.*/\1/")"
+    stat="$(echo "$output" | grep "^$1:" | sed "s/.* \([0-9BKMG]*\) $2.*/\1/")"
 
     val="${stat:0:$((${#stat} - 1))}"
     label="${stat:$((${#stat} - 1)):1}"
 
     while [[ "${#label}" -gt 0 ]]; do
-        val=$(($val * $byte_scale))
+        if [[ "$label" != 'B' ]]; then
+            val=$(($val * $byte_scale))
+        fi
+
         if [[ "$label" == 'G' ]]; then
             label='M'
         elif [[ "$label" == 'M' ]]; then
@@ -61,11 +64,11 @@ swap_total_bytes=$(($swap_used_bytes + $swap_free_bytes))
 
 scale_bytes() {
     val="$(($1 * 10))"
-    label=''
+    label='B'
 
     while [[ "$val" -gt "$(($byte_scale * 10))" ]]; do
         val=$(($val / $byte_scale))
-        if [[ "${#label}" -le 0 ]]; then
+        if [[ "${label:-B}" == 'B' ]]; then
             label='K'
         elif [[ "$label" == 'K' ]]; then
             label='M'
@@ -74,7 +77,7 @@ scale_bytes() {
             break
         fi
     done
-    echo "$(echo "$val" | sed 's/^\(.*\)\([0-9]\)$/\1.\2/') $label"
+    echo "$(echo "$val" | sed 's/^\(.*\)\([0-9]\)$/\1.\2/;s/^\./0./;') $label"
 }
 
 if [[ "$human_format" -gt 0 ]]; then
